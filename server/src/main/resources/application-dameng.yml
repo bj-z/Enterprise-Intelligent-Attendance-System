@@ -1,0 +1,26 @@
+# =====================================================
+# 达梦数据库8 配置文件
+# 从MySQL适配到达梦数据库时使用此配置
+# 使用方法：启动时指定 spring.profiles.active=dameng
+# =====================================================
+
+spring:
+  datasource:
+    url: jdbc:dm://localhost:5236/ATTENDANCE_SYSTEM?schema=ATTENDANCE_SYSTEM
+    username: SYSDBA
+    password: SYSDBA
+    driver-class-name: dm.jdbc.driver.DmDriver
+    # 达梦连接池配置
+    hikari:
+      connection-test-query: SELECT 1 FROM DUAL
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.DmDialect
+        format_sql: true
+        # 达梦数据库Schema
+        default_schema: ATTENDANCE_SYSTEM
+    open-in-view: false

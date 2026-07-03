@@ -1,0 +1,57 @@
+server:
+  port: 18080
+
+spring:
+  application:
+    name: attendance-server
+  datasource:
+    url: jdbc:mysql://localhost:3306/attendance_system?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    open-in-view: false
+  # 强制JVM文件编码为UTF-8（Spring Boot 3.2+支持，启动时自动校验）
+  mandatory-file-encoding: UTF-8
+
+# 日志配置
+logging:
+  charset:
+    console: UTF-8
+    file: UTF-8
+
+# JWT配置
+jwt:
+  secret: attendance-system-jwt-secret-key-2026-06-23-enterprise-attendance
+  expiration: 86400000
+
+# Knife4j API文档
+springdoc:
+  swagger-ui:
+    path: /doc.html
+  api-docs:
+    path: /v3/api-docs
+
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+# Actuator 配置（用于K8s健康检查）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

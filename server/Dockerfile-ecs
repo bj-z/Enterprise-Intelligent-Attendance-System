@@ -1,0 +1,26 @@
+# ============================================
+# ECS后端 Dockerfile（无Maven，直接运行预编译JAR）
+# 使用方式：先在本地 mvn package，再 docker build -f Dockerfile-ecs
+# ============================================
+FROM eclipse-temurin:17
+
+RUN apt-get update && \
+    apt-get install -y tzdata curl && \
+    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+    echo "Asia/Shanghai" > /etc/timezone && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY target/*.jar app.jar
+
+RUN mkdir -p /app/logs
+
+EXPOSE 18080
+
+ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom"
+# Spring Boot 会优先使用环境变量覆盖 application.yml 中的配置
+ENV SPRING_DATASOURCE_URL="jdbc:mysql://mysql:3306/attendance_system?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true"
+ENV SPRING_DATASOURCE_USERNAME="root"
+ENV SPRING_DATASOURCE_PASSWORD="123456"
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
