@@ -5,7 +5,7 @@
                 <el-icon class="section-icon"><Cpu /></el-icon>
                 AI 服务配置
             </h3>
-            <span class="section-desc">配置 AI API 连接信息，支持 DeepSeek / OpenAI / 自定义兼容接口</span>
+            <span class="section-desc">配置 AI API 连接信息，支持 DeepSeek 接口</span>
         </div>
 
         <el-divider />
