@@ -1,0 +1,80 @@
+# ============================================
+# ECS一体化部署 docker-compose（含MySQL）
+# 架构：MySQL容器 + Spring Boot容器 + Nginx容器 三合一
+# 无需RDS，无需镜像仓库，本地构建
+# ============================================
+version: "3.8"
+
+services:
+  # ============================================
+  # MySQL 8.0 数据库
+  # ============================================
+  mysql:
+    image: mysql:8.0
+    container_name: attendance-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_DATABASE: attendance_system
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # 自动初始化数据库表结构
+      - ./attendance_system_export.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - attendance-net
+
+  # ============================================
+  # Spring Boot 后端
+  # ============================================
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile-ecs
+    container_name: attendance-backend
+    restart: always
+    ports:
+      - "18080:18080"
+    environment:
+      - TZ=Asia/Shanghai
+      - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/attendance_system?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - JWT_SECRET=attendance-system-jwt-secret-key-2026-06-23
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - attendance-net
+
+  # ============================================
+  # Nginx 前端
+  # ============================================
+  frontend:
+    build:
+      context: ./attendance_management
+      dockerfile: Dockerfile-ecs
+    container_name: attendance-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - attendance-net
+
+networks:
+  attendance-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
